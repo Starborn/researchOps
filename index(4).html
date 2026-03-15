@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResearchOps Hub</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f7f6f3;
+    --bg-tertiary: #f0efe9;
+    --text: #1a1a18;
+    --text-secondary: #6b6b66;
+    --border: rgba(0,0,0,0.10);
+    --border-hover: rgba(0,0,0,0.20);
+    --accent: #185FA5;
+    --accent-bg: #E6F1FB;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --bg-secondary: #232320;
+      --bg-tertiary: #2c2c2a;
+      --text: #f0efe9;
+      --text-secondary: #999892;
+      --border: rgba(255,255,255,0.10);
+      --border-hover: rgba(255,255,255,0.22);
+      --accent: #85B7EB;
+      --accent-bg: #0C447C;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    background: var(--bg-tertiary);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* LAYOUT */
+  .shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--bg);
+    border-right: 0.5px solid var(--border);
+    padding: 2rem 1.25rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .brand p {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .brand h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .brand .tagline {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .nav-group p {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px 10px;
+    border-radius: var(--radius);
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.12s;
+    line-height: 1.3;
+  }
+
+  .nav-item:hover { background: var(--bg-secondary); color: var(--text); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    border-top: 0.5px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  /* MAIN */
+  .main { padding: 2.5rem 2rem; max-width: 860px; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-header { margin-bottom: 1.75rem; }
+  .section-header h2 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .section-header p { font-size: 14px; color: var(--text-secondary); }
+
+  /* CARDS */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card:hover { border-color: var(--border-hover); background: var(--bg-secondary); }
+
+  .card-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .tag-teal { background: #E1F5EE; color: #0F6E56; }
+  .tag-blue { background: #E6F1FB; color: #185FA5; }
+  .tag-amber { background: #FAEEDA; color: #854F0B; }
+  .tag-purple { background: #EEEDFE; color: #534AB7; }
+  .tag-coral { background: #FAECE7; color: #993C1D; }
+
+  @media (prefers-color-scheme: dark) {
+    .tag-teal { background: #085041; color: #9FE1CB; }
+    .tag-blue { background: #0C447C; color: #B5D4F4; }
+    .tag-amber { background: #633806; color: #FAC775; }
+    .tag-purple { background: #3C3489; color: #CECBF6; }
+    .tag-coral { background: #712B13; color: #F5C4B3; }
+  }
+
+  .card h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+  .card p { font-size: 12px; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+
+  .card-action {
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* TEMPLATES */
+  .template-group-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 1.25rem 0 8px;
+  }
+
+  .template-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.12s;
+    text-decoration: none;
+  }
+
+  .template-row:hover { border-color: var(--border-hover); background: var(--bg-secondary); }
+
+  .template-row .t-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .template-row .t-desc { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+  .template-row .t-icon { font-size: 15px; color: var(--text-secondary); margin-left: 12px; flex-shrink: 0; }
+
+  /* INTAKE FORM */
+  .form-card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    max-width: 620px;
+  }
+
+  .form-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 1.25rem; }
+
+  .form-row { margin-bottom: 1rem; }
+  .form-row label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+  }
+
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    width: 100%;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.12s;
+  }
+
+  .form-row input:focus,
+  .form-row select:focus,
+  .form-row textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .form-row textarea { resize: vertical; min-height: 80px; }
+
+  .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .consent-block {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-top: 1rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .consent-block strong { color: var(--text); display: block; margin-bottom: 8px; }
+
+  .consent-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .consent-check input { margin-top: 3px; flex-shrink: 0; }
+
+  .submit-btn {
+    margin-top: 1.25rem;
+    padding: 9px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: opacity 0.12s;
+  }
+
+  .submit-btn:hover { opacity: 0.82; }
+
+  /* INSIGHT REPO */
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .search-bar input {
+    flex: 1;
+    min-width: 180px;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+  }
+
+  .search-bar input:focus { outline: none; border-color: var(--accent); }
+
+  .filter-sel {
+    font-size: 12px;
+    padding: 7px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .insight-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .insight-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding: 8px 10px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .insight-table td {
+    padding: 10px 10px;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .insight-table tr:hover td { background: var(--bg-secondary); }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-blue  { background: #E6F1FB; color: #185FA5; }
+  .badge-coral { background: #FAECE7; color: #993C1D; }
+
+  @media (prefers-color-scheme: dark) {
+    .badge-green { background: #27500A; color: #C0DD97; }
+    .badge-amber { background: #633806; color: #FAC775; }
+    .badge-blue  { background: #0C447C; color: #B5D4F4; }
+    .badge-coral { background: #712B13; color: #F5C4B3; }
+  }
+
+  .repo-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .add-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: inherit;
+  }
+
+  .add-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--bg-secondary); }
+
+  /* PROCESS */
+  .phase-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 1.5rem 0 10px;
+  }
+
+  .step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .step-num {
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .step h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .step p  { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: static;
+      height: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 1rem;
+      border-right: none;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .brand { width: 100%; }
+    .nav-group { display: contents; }
+    .nav-group p { display: none; }
+    .sidebar-footer { display: none; }
+    .main { padding: 1.25rem 1rem; }
+    .form-2col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <p>Research Operations</p>
+      <h1>ResearchOps Hub</h1>
+      <span class="tagline">Infrastructure for cross-functional research teams.</span>
+    </div>
+
+    <nav>
+      <div class="nav-group">
+        <p>Core</p>
+        <button class="nav-item active" onclick="show('participants')">Participant management</button>
+        <button class="nav-item" onclick="show('templates')">Templates</button>
+        <button class="nav-item" onclick="show('intake')">Intake &amp; consent</button>
+        <button class="nav-item" onclick="show('insights')">Insight repository</button>
+        <button class="nav-item" onclick="show('process')">Process guide</button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      ResearchOps Hub<br>
+      Open resource for product teams.<br>
+      <a href="https://github.com/Starborn/researchops" style="color:var(--accent);text-decoration:none;">github.com/Starborn/researchops</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- PARTICIPANT MANAGEMENT -->
+    <div class="section active" id="participants">
+      <div class="section-header">
+        <h2>Participant management</h2>
+        <p>Track, recruit, and communicate with research participants across studies and teams.</p>
+      </div>
+      <div class="card-grid">
+        <div class="card"><span class="card-tag tag-teal">Recruitment</span><h3>Participant screener</h3><p>Pre-qualify participants by role, behaviour, or product usage before scheduling.</p><div class="card-action"><span>Open template</span><span>→</span></div></div>
+        <div class="card"><span class="card-tag tag-blue">Scheduling</span><h3>Session scheduler</h3><p>Coordinate availability, send calendar holds, and manage no-shows.</p><div class="card-action"><span>Open template</span><span>→</span></div></div>
+        <div class="card"><span class="card-tag tag-amber">Incentives</span><h3>Incentive tracker</h3><p>Log participant payments, gift cards, and fulfilment status per study.</p><div class="card-action"><span>Open tracker</span><span>→</span></div></div>
+        <div class="card"><span class="card-tag tag-purple">Panel</span><h3>Participant panel</h3><p>Maintain a reusable pool of opted-in participants with tags, study history, and opt-out.</p><div class="card-action"><span>View panel</span><span>→</span></div></div>
+        <div class="card"><span class="card-tag tag-teal">Communication</span><h3>Email templates</h3><p>Standardised invitation, reminder, thank-you, and cancellation messages.</p><div class="card-action"><span>Browse emails</span><span>→</span></div></div>
+        <div class="card"><span class="card-tag tag-blue">Compliance</span><h3>Data retention log</h3><p>Track when participant data is due for deletion per GDPR / local requirements.</p><div class="card-action"><span>Open log</span><span>→</span></div></div>
+      </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div class="section" id="templates">
+      <div class="section-header">
+        <h2>Templates</h2>
+        <p>Ready-to-use documents for every stage of the research lifecycle.</p>
+      </div>
+
+      <p class="template-group-label">Planning</p>
+      <a class="template-row" href="#"><div><div class="t-name">Research brief</div><div class="t-desc">Define objectives, questions, scope, and stakeholders</div></div><span class="t-icon">↓</span></a>
+      <a class="template-row" href="#"><div><div class="t-name">Study plan</div><div class="t-desc">Method, timeline, recruitment criteria, deliverables</div></div><span class="t-icon">↓</span></a>
+      <a class="template-row" href="#"><div><div class="t-name">Discussion guide</div><div class="t-desc">Moderation script for interviews and usability sessions</div></div><span class="t-icon">↓</span></a>
+
+      <p class="template-group-label">Consent &amp; ethics</p>
+      <a class="template-row" href="#"><div><div class="t-name">Informed consent form</div><div class="t-desc">GDPR-ready -- covers recording, data use, withdrawal rights</div></div><span class="t-icon">↓</span></a>
+      <a class="template-row" href="#"><div><div class="t-name">Remote consent (async)</div><div class="t-desc">Self-serve consent for unmoderated studies</div></div><span class="t-icon">↓</span></a>
+      <a class="template-row" href="#"><div><div class="t-name">Minor / guardian consent</div><div class="t-desc">For studies involving participants under 18</div></div><span class="t-icon">↓</span></a>
+
+      <p class="template-group-label">Synthesis &amp; reporting</p>
+      <a class="template-row" href="#"><div><div class="t-name">Topline summary</div><div class="t-desc">1-page findings snapshot for rapid stakeholder sharing</div></div><span class="t-icon">↓</span></a>
+      <a class="template-row" href="#"><div><div class="t-name">Full research report</div><div class="t-desc">Background, findings, implications, recommendations</div></div><span class="t-icon">↓</span></a>
+      <a class="template-row" href="#"><div><div class="t-name">Insight card (single)</div><div class="t-desc">Atomic insight format for repository tagging</div></div><span class="t-icon">↓</span></a>
+    </div>
+
+    <!-- INTAKE & CONSENT -->
+    <div class="section" id="intake">
+      <div class="section-header">
+        <h2>Intake &amp; consent</h2>
+        <p>Collect participant details and capture consent before any session begins.</p>
+      </div>
+      <div class="form-card">
+        <h3>Participant intake form</h3>
+        <div class="form-2col">
+          <div class="form-row"><label>First name</label><input type="text" placeholder="e.g. Maria"></div>
+          <div class="form-row"><label>Last name</label><input type="text" placeholder="e.g. Santos"></div>
+        </div>
+        <div class="form-row"><label>Email address</label><input type="email" placeholder="participant@example.com"></div>
+        <div class="form-2col">
+          <div class="form-row"><label>Role / job title</label><input type="text" placeholder="e.g. Product manager"></div>
+          <div class="form-row"><label>Organisation size</label>
+            <select>
+              <option>Select...</option>
+              <option>1--10</option><option>11--50</option><option>51--200</option>
+              <option>201--1000</option><option>1000+</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row"><label>How did you hear about this study?</label><input type="text" placeholder="e.g. Internal Slack, email invite..."></div>
+        <div class="form-row"><label>Accessibility needs</label><textarea placeholder="Let us know if you need anything to participate comfortably."></textarea></div>
+
+        <div class="consent-block">
+          <strong>Consent &amp; data use</strong>
+          By submitting this form you confirm that:<br>
+          -- You are participating voluntarily and may withdraw at any time without consequence.<br>
+          -- Sessions may be recorded for analysis purposes only. Recordings will not be shared externally.<br>
+          -- Your personal data will be stored securely and deleted within 12 months of the study closing.<br>
+          -- You consent to anonymised quotes or observations being used in internal reports.
+          <label class="consent-check">
+            <input type="checkbox">
+            <span>I have read and agree to the above terms.</span>
+          </label>
+        </div>
+        <button class="submit-btn" onclick="handleSubmit()">Submit intake form</button>
+      </div>
+    </div>
+
+    <!-- INSIGHT REPOSITORY -->
+    <div class="section" id="insights">
+      <div class="section-header">
+        <h2>Insight repository</h2>
+        <p>A searchable, tagged record of findings across all studies.</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search insights, themes, or studies..." oninput="filterInsights()">
+        <select class="filter-sel" id="filter-theme" onchange="filterInsights()">
+          <option value="">All themes</option>
+          <option>Onboarding</option><option>Navigation</option><option>Trust</option>
+          <option>Performance</option><option>Notifications</option>
+        </select>
+        <select class="filter-sel" id="filter-status" onchange="filterInsights()">
+          <option value="">All status</option>
+          <option>Validated</option><option>Emerging</option><option>Contradicted</option>
+        </select>
+      </div>
+      <table class="insight-table">
+        <thead><tr><th>Insight</th><th>Theme</th><th>Study</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="insight-body"></tbody>
+      </table>
+      <div class="repo-footer">
+        <span style="font-size:12px;color:var(--text-secondary)" id="insight-count"></span>
+        <button class="add-btn" onclick="addInsight()">+ Add insight</button>
+      </div>
+    </div>
+
+    <!-- PROCESS GUIDE -->
+    <div class="section" id="process">
+      <div class="section-header">
+        <h2>Process guide</h2>
+        <p>End-to-end steps for running research that any team member can follow.</p>
+      </div>
+
+      <p class="phase-label">Phase 1 -- Define</p>
+      <div class="step"><span class="step-num">1</span><div><h4>Write a research brief</h4><p>Capture the decision to be made, the questions to answer, and who needs the output. Use the brief template.</p></div></div>
+      <div class="step"><span class="step-num">2</span><div><h4>Get stakeholder sign-off</h4><p>Share with PM, design, and eng leads. Confirm scope and timeline before recruiting.</p></div></div>
+
+      <p class="phase-label">Phase 2 -- Recruit</p>
+      <div class="step"><span class="step-num">3</span><div><h4>Draft and distribute screener</h4><p>Define 3--5 qualifying criteria. Use the screener template. Share via panel, Slack, or recruiting vendor.</p></div></div>
+      <div class="step"><span class="step-num">4</span><div><h4>Collect intake and consent</h4><p>Send participants the intake form. Consent must be recorded before any session begins.</p></div></div>
+      <div class="step"><span class="step-num">5</span><div><h4>Schedule and confirm sessions</h4><p>Send calendar holds with link, estimated duration, and what to expect.</p></div></div>
+
+      <p class="phase-label">Phase 3 -- Conduct</p>
+      <div class="step"><span class="step-num">6</span><div><h4>Run sessions with a discussion guide</h4><p>Assign one note-taker. Record only with verbal consent confirmed at session start.</p></div></div>
+      <div class="step"><span class="step-num">7</span><div><h4>Debrief immediately after</h4><p>5--10 min team debrief after each session. Capture hot observations before synthesis.</p></div></div>
+
+      <p class="phase-label">Phase 4 -- Synthesise &amp; share</p>
+      <div class="step"><span class="step-num">8</span><div><h4>Affinity mapping and insight extraction</h4><p>Group observations into themes. Write atomic insight statements ("users expect X because Y").</p></div></div>
+      <div class="step"><span class="step-num">9</span><div><h4>Add insights to the repository</h4><p>Tag each insight with theme, study, date, and confidence level. Link to source clips or notes.</p></div></div>
+      <div class="step"><span class="step-num">10</span><div><h4>Distribute topline summary</h4><p>Share the 1-page topline with stakeholders within 48 hrs of last session. Schedule a readout if needed.</p></div></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const SECTIONS = ['participants','templates','intake','insights','process'];
+
+function show(id) {
+  SECTIONS.forEach(s => {
+    document.getElementById(s).classList.toggle('active', s === id);
+  });
+  document.querySelectorAll('.nav-item').forEach((b, i) => {
+    b.classList.toggle('active', SECTIONS[i] === id);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+const INSIGHTS = [
+  { text: "Users abandon onboarding when asked to invite teammates before seeing product value.", theme: "Onboarding", study: "Q1 Onboarding Study", date: "Feb 2025", status: "Validated" },
+  { text: "Navigation labels using internal jargon cause confusion for new users.", theme: "Navigation", study: "Wayfinding Audit", date: "Nov 2024", status: "Validated" },
+  { text: "Error messages that omit next steps reduce user trust significantly.", theme: "Trust", study: "Error State Review", date: "Jan 2025", status: "Validated" },
+  { text: "Slow dashboard load times are the top frustration across all user segments.", theme: "Performance", study: "Q4 NPS Followup", date: "Dec 2024", status: "Validated" },
+  { text: "Daily notification volume may be reducing engagement rather than increasing it.", theme: "Notifications", study: "Notification Pilot", date: "Mar 2025", status: "Emerging" },
+  { text: "Users who complete a template in their first session show higher 30-day retention.", theme: "Onboarding", study: "Retention Cohort Analysis", date: "Mar 2025", status: "Emerging" },
+];
+
+const STATUS_BADGE = { Validated: 'badge-green', Emerging: 'badge-amber', Contradicted: 'badge-coral' };
+
+function renderInsights(data) {
+  const tbody = document.getElementById('insight-body');
+  tbody.innerHTML = data.map(i => `
+    <tr>
+      <td style="max-width:280px">${i.text}</td>
+      <td><span class="badge badge-blue">${i.theme}</span></td>
+      <td style="font-size:12px;color:var(--text-secondary)">${i.study}</td>
+      <td style="font-size:12px;color:var(--text-secondary);white-space:nowrap">${i.date}</td>
+      <td><span class="badge ${STATUS_BADGE[i.status] || 'badge-blue'}">${i.status}</span></td>
+    </tr>`).join('');
+  document.getElementById('insight-count').textContent = `Showing ${data.length} insight${data.length !== 1 ? 's' : ''}`;
+}
+
+function filterInsights() {
+  const q     = document.getElementById('search-input').value.toLowerCase();
+  const theme = document.getElementById('filter-theme').value;
+  const status= document.getElementById('filter-status').value;
+  renderInsights(INSIGHTS.filter(i =>
+    (!q     || i.text.toLowerCase().includes(q) || i.theme.toLowerCase().includes(q) || i.study.toLowerCase().includes(q)) &&
+    (!theme  || i.theme === theme) &&
+    (!status || i.status === status)
+  ));
+}
+
+function handleSubmit() {
+  const consent = document.querySelector('.consent-check input');
+  if (!consent.checked) { alert('Please confirm your consent before submitting.'); return; }
+  alert('Thank you -- your intake form has been submitted. You will receive a confirmation email shortly.');
+}
+
+function addInsight() {
+  const text = prompt('Enter insight statement:');
+  if (!text) return;
+  const theme = prompt('Theme (e.g. Onboarding, Navigation, Trust):') || 'General';
+  const study = prompt('Study name:') || 'Ad hoc';
+  INSIGHTS.unshift({ text, theme, study, date: new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), status: 'Emerging' });
+  filterInsights();
+}
+
+renderInsights(INSIGHTS);
+</script>
+</body>
+</html>
